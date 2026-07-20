@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clínica Sorriso</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🦷 Clínica Sorriso</h1>
+            <nav>
+                <a href="/agendar" class="btn">📅 Agendar</a>
+            </nav>
+        </header>
+        <section class="chat-section">
+            <h2>💬 Converse com DentBot</h2>
+            <div id="chat-box">
+                <div id="messages"></div>
+            </div>
+            <div class="input-area">
+                <input type="text" id="chat-input" placeholder="Digite sua mensagem...">
+                <button id="send-btn">Enviar</button>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const messagesDiv = document.getElementById('messages');
+        const input = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('send-btn');
+
+        function addMessage(sender, text) {
+            const div = document.createElement('div');
+            div.className = `message ${sender}`;
+            div.innerHTML = `<strong>${sender === 'user' ? 'Você' : 'DentBot'}:</strong> ${text}`;
+            messagesDiv.appendChild(div);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const msg = input.value.trim();
+            if (!msg) return;
+            addMessage('user', msg);
+            input.value = '';
+            try {
+                const resp = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mensagem: msg })
+                });
+                const data = await resp.json();
+                if (data.resposta) {
+                    // Quebrar resposta em linhas
+                    const linhas = data.resposta.split('\n');
+                    linhas.forEach(line => addMessage('bot', line));
+                } else {
+                    addMessage('bot', 'Desculpe, não entendi.');
+                }
+            } catch (error) {
+                addMessage('bot', 'Erro de conexão. Tente novamente.');
+            }
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // Mensagem de boas-vindas
+        window.onload = function() {
+            addMessage('bot', 'Olá! Sou o DentBot. Como posso ajudar?');
+        };
+    </script>
+</body>
+</html>
