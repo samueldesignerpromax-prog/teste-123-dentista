@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Agendar</title>
+    <style>
+        body { font-family: Arial; max-width: 600px; margin: auto; padding: 20px; }
+        label { display: block; margin: 10px 0 5px; }
+        input, select { width: 100%; padding: 8px; box-sizing: border-box; }
+        button { background: #0077b6; color: white; padding: 10px 20px; border: none; border-radius: 5px; margin-top: 15px; }
+        .erro { color: red; }
+    </style>
+</head>
+<body>
+<h1>Agendar consulta</h1>
+<form method="post">
+    <label>Nome completo *</label>
+    <input type="text" name="nome" required value="{{ dados_form.nome if dados_form else '' }}">
+
+    <label>Email</label>
+    <input type="email" name="email" value="{{ dados_form.email if dados_form else '' }}">
+
+    <label>Telefone *</label>
+    <input type="text" name="telefone" required value="{{ dados_form.telefone if dados_form else '' }}">
+
+    <label>Dentista *</label>
+    <select name="dentista_id" id="dentista_id" required>
+        {% for d in dentistas %}
+        <option value="{{ d.id }}" {% if dados_form and dados_form.dentista_id|int == d.id %}selected{% endif %}>
+            {{ d.nome }} ({{ d.especialidade }})
+        </option>
+        {% endfor %}
+    </select>
+
+    <label>Serviço *</label>
+    <select name="servico_id" id="servico_id" required>
+        {% for s in servicos %}
+        <option value="{{ s.id }}" {% if dados_form and dados_form.servico_id|int == s.id %}selected{% endif %}>
+            {{ s.nome }} ({{ s.duracao_minutos }} min)
+        </option>
+        {% endfor %}
+    </select>
+
+    <label>Data *</label>
+    <input type="date" name="data" id="data" required value="{{ dados_form.data if dados_form else '' }}">
+
+    <label>Horário *</label>
+    <select name="horario" id="horario" required>
+        <option value="">Selecione uma data primeiro</option>
+    </select>
+
+    <input type="hidden" name="data_hora" id="data_hora">
+
+    {% if erro %}
+    <p class="erro">{{ erro }}</p>
+    {% endif %}
+
+    <button type="submit">Agendar</button>
+</form>
+
+<script>
+    const dataInput = document.getElementById('data');
+    const horarioSelect = document.getElementById('horario');
+    const dentistaSelect = document.getElementById('dentista_id');
+
+    async function carregarHorarios() {
+        const data = dataInput.value;
+        const dentistaId = dentistaSelect.value;
+        if (!data || !dentistaId) {
+            horarioSelect.innerHTML = '<option value="">Selecione data e dentista</option>';
+            return;
+        }
+        try {
+            const resp = await fetch(`/api/horarios?data=${data}&dentista_id=${dentistaId}`);
+            const dados = await resp.json();
+            if (dados.erro) {
+                horarioSelect.innerHTML = '<option value="">Erro ao carregar</option>';
+                return;
+            }
+            horarioSelect.innerHTML = '';
+            if (dados.horarios.length === 0) {
+                horarioSelect.innerHTML = '<option value="">Nenhum horário disponível</option>';
+            } else {
+                dados.horarios.forEach(h => {
+                    const opt = document.createElement('option');
+                    opt.value = h;
+                    opt.textContent = h.substring(11, 16); // mostra HH:mm
+                    horarioSelect.appendChild(opt);
+                });
+            }
+        } catch (err) {
+            horarioSelect.innerHTML = '<option value="">Erro de conexão</option>';
+        }
+    }
+
+    dataInput.addEventListener('change', carregarHorarios);
+    dentistaSelect.addEventListener('change', carregarHorarios);
+
+    // Preencher hidden com data+horário antes de enviar
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const data = dataInput.value;
+        const horario = horarioSelect.value;
+        if (data && horario) {
+            document.getElementById('data_hora').value = `${data}T${horario}`;
+        } else {
+            e.preventDefault();
+            alert('Selecione data e horário.');
+        }
+    });
+
+    // Se já houver dados pré-preenchidos (ex: erro), carregar horários automaticamente
+    window.addEventListener('load', function() {
+        if (dataInput.value && dentistaSelect.value) {
+            carregarHorarios();
+        }
+    });
+</script>
+</body>
+</html>
