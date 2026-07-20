@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - Agendamentos</title>
+    <style>
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background: #f2f2f2; }
+    </style>
+</head>
+<body>
+<h1>Agendamentos</h1>
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Cliente</th>
+        <th>Dentista</th>
+        <th>Serviço</th>
+        <th>Data/Hora</th>
+        <th>Status</th>
+    </tr>
+    {% for a in agendamentos %}
+    <tr>
+        <td>{{ a.id }}</td>
+        <td>{{ a.cliente_nome }}</td>
+        <td>{{ a.dentista.nome }}</td>
+        <td>{{ a.servico.nome }}</td>
+        <td>{{ a.data_hora.strftime('%d/%m/%Y %H:%M') }}</td>
+        <td>{{ a.status }}</td>
+    </tr>
+    {% endfor %}
+</table>
+<p><a href="/">Voltar</a></p>
+</body>
+</html>
