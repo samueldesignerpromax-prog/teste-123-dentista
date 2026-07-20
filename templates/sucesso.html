@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Agendamento confirmado</title>
+    <style>
+        body { font-family: Arial; max-width: 600px; margin: auto; padding: 20px; }
+        .sucesso { color: green; }
+    </style>
+</head>
+<body>
+<h1 class="sucesso">✅ Agendamento realizado!</h1>
+<p><strong>Nome:</strong> {{ agendamento.cliente_nome }}</p>
+<p><strong>Dentista:</strong> {{ agendamento.dentista.nome }}</p>
+<p><strong>Serviço:</strong> {{ agendamento.servico.nome }}</p>
+<p><strong>Data/Hora:</strong> {{ agendamento.data_hora.strftime('%d/%m/%Y %H:%M') }}</p>
+<p><a href="/">Voltar ao início</a></p>
+</body>
+</html>
